@@ -3,7 +3,7 @@ from bitstring import BitArray, BitStream
 
 
 
-class File_info:
+class DesiredFileInfo:
 	'''Takes as input the de-bencoded stream of data
 	   Initializes object with organized file information'''
 
@@ -24,6 +24,7 @@ class File_info:
 		self.info = self.data['info']
 		self.piece_length = self.data['info']['piece length']
 		self.pieces = self.data['info']['pieces']
+		self.number_of_pieces = len(self.pieces) / 20
 		self.private = self.data['info'].get('private', 0)
 		self.name = self.data['info']['name']
 		self.info_hash = hashlib.sha1(bencode.bencode(self.data['info']))
@@ -38,14 +39,16 @@ class File_info:
 			self.multiple_files = True
 
 
-
-
 class Tracker:
 
 	def __init__(self, file_info):
 		self.file_info = file_info
 		self.tracker = self.perform_tracker_request()
-		self.peer_ips = self.make_peers(self.generate_peer_list())
+		self.make_peers()
+
+	def cycle_through_peers(self):
+		for p in self.peers:
+			p.receive_data()
 
 	def perform_tracker_request(self):
 		'''Requests tracker information'''
@@ -76,8 +79,9 @@ class Tracker:
 			pass #!!!todo
 		return peer_ip_addresses
 
-	def make_peers(self, ip_addresses):
+	def make_peers(self):
 		'''Opens sockets to viable ip addresses'''
+		ip_addresses = self.generate_peer_list()
 		self.sockets = []
 		for ip in ip_addresses:
 			if ip[1]!=0:
@@ -87,22 +91,22 @@ class Tracker:
 					self.sockets.append(sock)
 				except socket.error:
 					print "Caught socket error"
-					pass
-		peers = []
+		self.peers = []
 		for s in self.sockets:
-			peers.append(Peer(s))
-
-
+			self.peers.append(Peer(s))
 
 class Peer:
 	def __init__(self, socket):
 		self.socket = socket
+		self.data = ''
+		print self.socket.getpeername()
 		self.handshake = self.construct_handshake()
 		self.send_handshake()
-		self.data = self.socket.recv(2 * 10**6) #!!!TODO Change this to a loop; receive_data method
-		self.messages = self.parse_data(self.data)
-		if self.bitfield_exists == True:
-			self.messages = self.complete_bitfield(self.messages)
+		self.bitfield = BitArray(file_info.number_of_pieces)
+		self.receive_data()
+
+	def __str__(self):
+		return 'Peer instance with socket '+str(self.socket)
 
 	def construct_handshake(self):
 		pstr = "BitTorrent protocol"
@@ -114,9 +118,13 @@ class Peer:
 		self.socket.send(self.handshake)
 		self.peer_handshake = self.socket.recv(68) #!!!TODO - make sure info_hash matches
 
-	def parse_data(self, data):
-		'''Returns list of tuples consisting of message type and message'''
-		parsed_data = {}
+	def receive_data(self):
+		print self, 'is receiving data...'
+		self.data += self.socket.recv(2 * 10**6)
+		self.parse_data()
+
+	def parse_data(self):
+		'''Returns list of tuples consisting of message type and message''' #!!!TODO
 		message_types = {	0 : 'choke',
 							1 : 'unchoke',
 							2 : 'interested',
@@ -127,65 +135,62 @@ class Peer:
 							7 : 'piece',
 							8 : 'cancel'
 							 }
-		messages = {}
-		while len(data) > 0:
-			while len(data) < 4:
-				data += get_data(self.socket)
-			length = struct.unpack('!I', data[:4])[0]
+
+		while len(self.data) > 0:
+			if len(self.data) < 4:
+				break
+			length = struct.unpack('!I', self.data[:4])[0]
 			if length == 0:
 				type = 'keep alive'
-# 				try: #??? Is any of this necessary?
-# 					messages[type] += [data[:4]]
-# 				except KeyError:
-# 					messages[type] = [data[:4]]
-				data = data[4:]
-			else:
-				id = ord(data[4])
+				self.data = self.data[4:]
+			else: #data type anything but 'keep alive'
+				type = message_types[ord(self.data[4])]
 				length = length-1 #subtract one for message-type byte
-				type = message_types[id]
 				if type == 'bitfield':
-					expected_bitfield_length = len(file_info.pieces) / 20
+					expected_bitfield_length = file_info.number_of_pieces
 					print "expected bitfield_length: ", expected_bitfield_length
-					self.bitfield_exists = True
-					bitfield_data = ""
-# 					print "raw bitfield: ", data[5:5+length]
-					for character in data[5:5+length]:
-# 						print "character: ", ord(character)
-						bitfield_data += str(bin(ord(character)))[2:]
-# 					print "orded bitfield: ", bitfield_data
-					bitfield_data = BitArray(bin=bitfield_data)[:expected_bitfield_length]
-					print "Lengths: ", expected_bitfield_length, len(bitfield_data)
-	# 				print "Binary bitfield: ", bitfield_data
-# 					print "length of bitfield: ", len(bitfield_data)
-					messages[type] = bitfield_data
+					self.bitfield = BitArray(bytes=self.data[5:5+length])[:expected_bitfield_length]
+				elif type == 'have':
+					self.complete_bitfield(struct.unpack('!I', self.data[5:5+length])[0])
 				else:
-					parsed_data = ""
-					for character in data[5:5+length]:
-						parsed_data += str(ord(character))#[2:]
-					parsed_data = int(parsed_data)
-					try:
-						messages[type] += [parsed_data]
-					except KeyError:
-						messages[type] = [parsed_data]
-				data = data[5+length:]
+					# type == something else !!!TODO
+					pass
+				self.data = self.data[5+length:]
 
- 		print "Finished parsing: ", messages
-		return messages
 
-	def complete_bitfield(self, messages):
-		print "Before alteration: ", messages['bitfield'].bin
-		for piece in messages['have']:
-# 			print "bitfield: ", messages['bitfield'].bin
-			messages['bitfield'][piece] = 1
-		print messages['bitfield'].bin
-		return messages
+	def complete_bitfield(self, have_index):
+		self.bitfield[have_index] = 1
+		print self.bitfield.bin
+
+	def send_interested(self):
+		#send message to peer of length 1 and ID 2
+		interested = struct.pack('!I', 1) + struct.pack('!B', 2)
+		self.socket.send(self.interested)
+
+	def receive_unchoke(self):
+		'''Set status to unchoke if message of length 1 and ID 1 received'''
+		if self.socket.recv(10**6) == struct.pack('!I', 1) + struct.pack('!B', 1):
+			self.unchoke = True
+		else:
+			#??? Timeout?  Wait?  Do a little dance?
+			pass
+
+	def send_request(self):
+		pass
 
 	def structure_pieces(self, messages):
 		pass
 
+class OwnedFileInfo:
+	def __init__(self):
+		self.bitfield = BitArray(file_info.number_of_pieces)
 
 
 
 if __name__ == "__main__":
-	file_info = File_info('test.torrent')
+	file_info = DesiredFileInfo('test.torrent')
+	my_file = OwnedFileInfo()
 	tracker = Tracker(file_info)
+	while True:
+		print 'going through peers...'
+		tracker.cycle_through_peers()
