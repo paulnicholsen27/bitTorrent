@@ -1,11 +1,7 @@
 import requests, bencode, hashlib, random, socket, struct, datetime
 from bitstring import BitArray, BitStream
 
-'''TODO:
 
-Use datetime module to make better file name
-Deal with last piece
-Pray'''
 
 
 class DesiredFileInfo:
@@ -287,12 +283,12 @@ class OwnedFileInfo:
 		self.file_creator()
 
 	def file_creator(self): #??? Is this really the most efficient way?
-		a = datetime.datetime.now()
-		now_tuple = a.year, a.month, a.day, a.hour, a.minute
-		file_date_stamp = ""
-		now_tuple = ['%02d' % value for value in now_tuple]
-		for value in now_tuple:
-			file_date_stamp += value
+# 		a = datetime.datetime.now()
+# 		now_tuple = a.year, a.month, a.day, a.hour, a.minute
+# 		file_date_stamp = ""
+# 		now_tuple = ['%02d' % value for value in now_tuple]
+# 		for value in now_tuple:
+# 			file_date_stamp += value
 		self.f = open(file_info.name, 'wb') #???Why wb?
 		print "Filename is: ", self.f.name
 
