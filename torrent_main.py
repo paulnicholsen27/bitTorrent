@@ -271,16 +271,17 @@ class Peer(object):
 			print "Doesn't match, reset"
 			self.current_piece = ""
 
+	def get_all_blocks(self):
+		while len(self.current_piece) < self.length + 13:
+			self.receive_block()
+ 		print "Data Received"
+
 	def receive_block(self):
 		'''peer will respond with a piece message'''
 		print "Receiving data"
  		new_data = self.socket.recv(2**15)
  		self.current_piece += new_data
- 		if len(self.current_piece) < self.length + 13:
- 			self.receive_block()
- 			print "Need more data"
  		#print "Piece so far: ", self.current_piece
- 		print "Data Received"
 
 
 	def write_to_file(self, file):
