@@ -4,7 +4,7 @@ from bitstring import BitArray, BitStream
 
 
 
-class DesiredFileInfo:
+class DesiredFileInfo(Object):
 	'''Takes as input the de-bencoded stream of data
 	   Initializes object with organized file information'''
 
@@ -60,7 +60,7 @@ class DesiredFileInfo:
 			self.number_of_whole_pieces = self.number_of_pieces
 
 
-class Tracker:
+class Tracker(Object):
 
 	def __init__(self, file_info):
 		self.file_info = file_info
@@ -131,7 +131,7 @@ class Tracker:
 		print "Number of peers: ", len(peer_list)
  		return peer_list
 
-class Peer:
+class Peer(Object):
 	def __init__(self, socket,file):
 		self.socket = socket
 		self.data = ''
@@ -292,7 +292,7 @@ class Peer:
 			      struct.pack('!I', self.length))
 		self.socket.send(cancel)
 
-class OwnedFileInfo:
+class OwnedFileInfo(Object):
 	def __init__(self):
 		self.bitfield = BitArray(file_info.number_of_pieces)
 		self.file_creator()
