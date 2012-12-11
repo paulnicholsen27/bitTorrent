@@ -298,12 +298,6 @@ class OwnedFileInfo:
 		self.file_creator()
 
 	def file_creator(self):
-# 		a = datetime.datetime.now()
-# 		now_tuple = a.year, a.month, a.day, a.hour, a.minute
-# 		file_date_stamp = ""
-# 		now_tuple = ['%02d' % value for value in now_tuple]
-# 		for value in now_tuple:
-# 			file_date_stamp += value
 		self.f = open(file_info.name, 'wb')
 		print "Filename is: ", self.f.name
 
@@ -314,7 +308,6 @@ class OwnedFileInfo:
 
 
 if __name__ == "__main__":
-#	file_info = DesiredFileInfo('blender_foundation_-_big_buck_bunny_720p.torrent')
 	file_info = DesiredFileInfo('test.torrent')
 	tracker = Tracker(file_info)
 	tracker.perform_tracker_request()
