@@ -40,7 +40,7 @@ class DesiredFileInfo(object):
 				self.length += file['length']
 			self.multiple_files = True
 		print "Multiple files? ", self.multiple_files
-		self.number_of_whole_blocks_in_whole_piece = 1
+		self.whole_blocks_per_piece = 1
 		
 		self.block_length = 2**14
 		if self.piece_length > 2**14:
@@ -130,15 +130,20 @@ class Tracker(object):
 					print "Caught socket error"
 		peer_list = []
 		print "Peer list: ", peer_list
-		for s in self.sockets:
+		for sock in self.sockets:
 			try:
-				new_peer = Peer(s, self.bitfield, self.file_info.block_length)
+				new_peer = Peer(sock)
 				peer_list.append(new_peer)
-				new_peer.get_data(self.bitfield, self.file_info.block_length, self.last_block_size)
+				piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size)
 			except socket.error:
 				print "Failed to make peer`"
 		print "Number of peers: ", len(peer_list)
  		return peer_list
+
+ 	def write_piece_to_file(self, piece_num, piece_data):
+
+
+
 
 class Peer(object):
 	def __init__(self, socket):
@@ -232,35 +237,41 @@ class Peer(object):
 		self.data += self.socket.recv(10**6)
 		self.parse_data()
 
-	def get_data(tracker_bitfield, block_length, last_block_size):
-		for piece in range(len(tracker_bitfield)):
-			if not tracker_bitfield[piece]:
+	def get_data(self, tracker_bitfield, block_length, last_block_size):
+		for piece_num in range(len(tracker_bitfield)):
+			if not tracker_bitfield[piece_num]:
 				print "sending request", piece_num
+				piece_data = self.returns_a_piece(tracker_bitfield, piece_num, block_length, last_block_size)
+				self.write_piece_to_file(piece_data, piece_num)
+				self.update_bitfield(self.index)
 
-				block = self.send_request(tracker_bitfield, piece, block_length, last_block_size)
-				self.current_piece += block
-				self.write_piece_to_file(self.current_piece, piece)
 
-
-	def send_request(self, tracker_bitfield, piece_num, block_length, last_block_size):
+	def returns_a_piece(self, tracker_bitfield, piece_num, block_length, last_block_size):
 		'''Constructs and sends a request for one piece that peer has and user does not'''
 		print "Sending request", piece_num
 		if self.bitfield[piece_num]:
 			print "Found a piece I don't have"
+			piece_data = ''
 			#peer has piece downloader does not
-			if last_block_size:
-				num_blocks = file_info.whole_blocks_per_piece + 1
-			else:
-				num_blocks = file_info.whole_blocks_per_piece
-			
-			for block in num_block:
-				print "Sending a request message"
-				msg = make_request_msg(13, 6, piece_num, j*block_length, block_length)
-				self.socket.send(msg)
-				block = self.get_entire_block()
-				return block
 
-	def make_request_msg(thirteen, six, piece_num, start_point, block_length):
+			for block_num in range(file_info.whole_blocks_per_piece):
+				block = self.get_block(piece_num, block_num, block_length)
+				piece_data += block
+			if last_block_size:
+				block = self.get_block(piece_num, block_num, last_block_size)
+				piece_data += block
+			return piece_data
+
+	def get_block(self, piece_num, block_num, block_length):
+		print "requesting a block"
+		block_data = ''
+		request_msg = self.make_request_msg(13, 6, piece_num, block_num*block_length, block_length)
+		self.socket.send(request_msg)
+		while len(block_data) < block_length + 13: #todo: learn why 13
+			block_data += self.socket.recv(2**15)
+		return block_data
+
+	def make_request_msg(self, thirteen, six, piece_num, start_point, block_length):
 		request_message = (struct.pack('!I', thirteen) + struct.pack('!B', six) +
 						  struct.pack('!I', piece_num) +
 						  struct.pack('!I', start_point) +
@@ -271,18 +282,10 @@ class Peer(object):
 	def check_piece(self, file):
 		return hashlib.sha1(self.current_piece[13:]).digest() == file_info.pieces[20*self.index:20*(self.index+1)]
 
-	def get_entire_block(self):
-		block = ''
-		while len(block) < self.length + 13:
-			block += self.socket.recv(2**15)
- 		print "Data Received"
- 		return block
-
-	def write_piece_to_file(self, my_file):
+	def write_piece_to_file(self, my_file, start_location, piece_data):
 		# if self.check_piece(my_file)
-		my_file.seek(self.index * file_info.piece_length)
-		my_file.f.write(self.current_piece[13:])
-		self.update_bitfield(self.index)
+		my_file.seek(start_location)
+		my_file.write(piece_data[13:])
 
 	def send_cancel(self):
 		cancel = (struct.pack('!I', 13) + struct.pack('!B', 8) +
