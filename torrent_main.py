@@ -243,7 +243,7 @@ class Peer(object):
 									  struct.pack('!I',self.begin) +
 						  			  struct.pack('!I', self.length))
 					self.socket.send(request_message)
-					self.receive_block()
+					self.get_all_blocks()
 					self.begin += self.length
 					print "New data received"
 					self.piece_check(file)
@@ -256,7 +256,7 @@ class Peer(object):
 									  struct.pack('!I', self.begin) +
 						  			  struct.pack('!I', self.length))
 					self.socket.send(request_message)
-					self.receive_block()
+					self.get_all_blocks()
 					print "End of piece received"
 					self.piece_check(file)
 
