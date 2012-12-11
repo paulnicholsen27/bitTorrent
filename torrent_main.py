@@ -278,10 +278,9 @@ class Peer(object):
 
 	def receive_block(self):
 		'''peer will respond with a piece message'''
-		print "Receiving data"
  		new_data = self.socket.recv(2**15)
+ 		print "Received data"
  		self.current_piece += new_data
- 		#print "Piece so far: ", self.current_piece
 
 
 	def write_to_file(self, file):
