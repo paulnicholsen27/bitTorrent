@@ -1,4 +1,6 @@
-import requests, bencode, hashlib, random, socket, struct, datetime
+import random, socket, struct, datetime, hashlib
+import requests
+import bencode
 from bitstring import BitArray, BitStream
 
 
