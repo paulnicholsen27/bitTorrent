@@ -108,19 +108,19 @@ class Client(object):
 	def make_peers(self):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		ip_addresses = self.generate_peer_list()
-		self.sockets = []
+		sockets = []
 		for ip, port in ip_addresses:
 			if ip != 0:
 				try:
 					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 					sock.connect((ip, port))
-					self.sockets.append(sock)
+					sockets.append(sock)
 					print "Socket made"
 				except socket.error as e:
 					print "Caught socket error:", e, "on socket", sock.fileno()
 		peer_list = []
 		print "Peer list: ", peer_list
-		for sock in self.sockets:
+		for sock in sockets:
 			try:
 				new_peer = PeerConnection(sock)
 				peer_list.append(new_peer)
