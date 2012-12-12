@@ -128,6 +128,7 @@ class PeerConnection(object):
 		self.bitfield = BitArray(file_info.number_of_pieces) #Initially set to all zeroes unless replaced with peer bitfield or updated with 'have' messages
 		
 		self.send_handshake()
+		handshake_hopefully = self.socket.recv(68)
 		# self.receive_data() This should definitely not be happening on init.
 		self.send_interested()
 		print "Made peer"
@@ -141,7 +142,6 @@ class PeerConnection(object):
 		reserved = chr(0) * 8
 		handshake =  pstrlen + pstr + reserved + file_info.info_hash.digest() + file_info.peer_id
 		self.socket.send(handshake)
-		self.peer_handshake = self.socket.recv(68) #!!!TODO - make sure info_hash matches
 
 	def receive_data(self):
 		print self, 'is receiving data...'
