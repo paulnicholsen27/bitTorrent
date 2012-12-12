@@ -70,13 +70,13 @@ class Client(object):
 		for p in self.peers:
 			p.receive_data()
 
-	def perform_tracker_request(self):
+	def perform_tracker_request(self, file_info):
 		'''Requests tracker information'''
-		parameters = {'info_hash': self.file_info.info_hash.digest(),
-					  'peer_id': self.file_info.peer_id,
-					  'left': self.file_info.length,
+		parameters = {'info_hash': file_info.info_hash.digest(),
+					  'peer_id': file_info.peer_id,
+					  'left': file_info.length,
 					  'port':6881}
-		request = requests.get(self.file_info.announce, params = parameters)
+		request = requests.get(file_info.announce, params = parameters)
 		tracker_data = bencode.bdecode(request.content)
 		#!!! There are more parameters to possibly be included
 		return tracker_data
