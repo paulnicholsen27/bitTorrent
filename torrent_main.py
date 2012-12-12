@@ -44,12 +44,9 @@ class DesiredFileInfo(object):
 		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
 		
 		# Blocks
-		self.block_length = 2**14
-		assert self.block_length <= self.piece_length
+		self.block_length = max(2**14, self.piece_length)
 		self.whole_blocks_per_piece = self.piece_length / self.block_length
 		self.last_block_size = self.piece_length % self.block_length # will often be zero
-		if self.piece_length < self.block_length:
-			self.block_length = self.piece_length
 
 
 class Tracker(object):
