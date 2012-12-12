@@ -57,7 +57,6 @@ class Client(object):
 		self.file_info = file_info
 		self.my_file = open(file_info.name, 'wb')
 		self.bitfield = BitArray(file_info.number_of_pieces)
-		self.peers = self.make_peers()
 
 	def update_bitfield(self, index):
 		'''Updates bitfield info for downloaded pieces'''
@@ -80,9 +79,8 @@ class Client(object):
 		return tracker_data
 		#!!!TODO - update tracker to get updated list of peers
 
-	def generate_peer_list(self):
+	def generate_peer_ip_list(self, tracker_data):
 		'''Makes peer list of (ip, port)'''
-		tracker_data = self.perform_tracker_request()
 		peer_list = tracker_data['peers']
 		print "Length of peer_list: ", len(peer_list)
 		peer_ip_addresses = []
@@ -103,9 +101,8 @@ class Client(object):
 				peer_ip_addresses.append(ip_and_port)
 		return peer_ip_addresses
 
-	def make_peers(self):
+	def make_peers(self, ip_addresses):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
-		ip_addresses = self.generate_peer_list()
 		peer_list = []
 		for ip, port in ip_addresses:
 			if ip != 0:
@@ -279,7 +276,9 @@ if __name__ == "__main__":
 	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
 	file_info = DesiredFileInfo(torrent_file)
 	client = Client(file_info)
-	client.perform_tracker_request()
+	tracker_data = client.perform_tracker_request(file_info)
+	peer_ips = client.generate_peer_ip_list(tracker_data)
+	client.peers = client.make_peers(peer_ips)
 
 
 	while any(client.bitfield)==False:
