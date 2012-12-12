@@ -90,13 +90,14 @@ class Client(object):
 		peer_ip_addresses = []
 		if type(peer_list) == str:
 			for i in range (0, len(peer_list), 6):
-				print "Peer attempt #", i
+				print "Peer attempt starting at point", i
 				ip = ()
 				for char in peer_list[i:i+4]:
 					ip += (ord(char),)
 				ip_string = "%s.%s.%s.%s" %(ip)
 				port = struct.unpack('!H', peer_list[i+4:i+6])[0]
 				ip_and_port = (ip_string, port)
+				print ip_and_port
 				peer_ip_addresses.append(ip_and_port)
 		if type(peer_list) == list:
 			for peer_dictionary in peer_list:
@@ -108,15 +109,15 @@ class Client(object):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		ip_addresses = self.generate_peer_list()
 		self.sockets = []
-		for ip in ip_addresses:
-			if ip[1]!=0:
+		for ip, port in ip_addresses:
+			if ip != 0:
 				try:
 					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-					sock.connect(ip)
+					sock.connect((ip, port))
 					self.sockets.append(sock)
 					print "Socket made"
 				except socket.error as e:
-					print "Caught socket error:", e
+					print "Caught socket error:", e, "on socket", sock.fileno()
 		peer_list = []
 		print "Peer list: ", peer_list
 		for sock in self.sockets:
@@ -124,8 +125,8 @@ class Client(object):
 				new_peer = PeerConnection(sock)
 				peer_list.append(new_peer)
 				piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size)
-			except socket.error:
-				print "Failed to make peer`"
+			except socket.error as e:
+				print "Failed to make peer because of", e
 		print "Number of peers: ", len(peer_list)
  		return peer_list
 
