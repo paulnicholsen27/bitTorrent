@@ -29,7 +29,7 @@ class DesiredFileInfo(object):
 
 		# How many blocks, pieces, etc.
 		self.number_of_pieces = len(self.pieces) / 20
-		# Each entry in pieces is a 20-bit byte string, so dividing by 20 gives the number of pieces
+		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
 		try:
 			self.length = decoded_data['info']['length']
 			self.multiple_files = False
