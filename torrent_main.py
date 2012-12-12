@@ -119,7 +119,7 @@ class Client(object):
 					piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
 					print "Socket made"
 				except socket.error as e:
-					print "Caught socket error:", e, "on socket", sock.fileno()
+					print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
  		return peer_list
 
  	def write_piece_to_file(self, piece_num, piece_data):
