@@ -7,7 +7,7 @@ from bitstring import BitArray, BitStream
 
 
 class DesiredFileInfo(object):
-	'''Takes as input the bdecoded torrent data
+	'''Takes as input the torrent file
 	   Initializes object with organized file information'''
 
 	version_number = 1000
