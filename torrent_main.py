@@ -37,8 +37,8 @@ class DesiredFileInfo(object):
 			self.length = sum(eachfile['length'] for eachfile in decoded_data['info']['files'])
 
 		# Pieces
-		self.piece_length = decoded_data['info']['piece length']
 		self.pieces = decoded_data['info']['pieces']
+		self.piece_length = decoded_data['info']['piece length']
 		assert len(self.pieces) % 20 == 0
 		self.number_of_pieces = len(self.pieces) / 20
 		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
