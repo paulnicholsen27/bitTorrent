@@ -33,11 +33,11 @@ class DesiredFileInfo(object):
 		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
 		try:
 			self.length = decoded_data['info']['length']
-			self.multiple_files = False
+			self.number_of_files = 1
 		except KeyError:
 			self.length = sum(eachfile['length'] for eachfile in decoded_data['info']['files'])
-			self.multiple_files = True
-		print "Multiple files? ", self.multiple_files
+			self.number_of_files = len(decoded_data['info']['files'])
+		print "How many files? ", self.number_of_files
 		self.whole_blocks_per_piece = 1
 		
 		self.block_length = 2**14
