@@ -51,7 +51,7 @@ class DesiredFileInfo(object):
 		self.last_block_size = self.piece_length % self.block_length # will often be zero
 
 
-class Tracker(object):
+class Client(object):
 
 	def __init__(self, file_info):
 		self.file_info = file_info
@@ -287,12 +287,12 @@ class Peer(object):
 if __name__ == "__main__":
 	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
 	file_info = DesiredFileInfo(torrent_file)
-	tracker = Tracker(file_info)
-	tracker.perform_tracker_request()
+	client = Client(file_info)
+	client.perform_tracker_request()
 
 
-	while any(tracker.bitfield)==False:
+	while any(client.bitfield)==False:
 		print 'going through peers...'
-  		peers = tracker.make_peers()
-		tracker.cycle_through_peers()
+  		peers = client.make_peers()
+		client.cycle_through_peers()
 	print "File completed"
