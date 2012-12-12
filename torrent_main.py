@@ -13,8 +13,8 @@ class DesiredFileInfo(object):
 	version_number = 1000
 	peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
-	def __init__(self, file):
-		f = open(file)
+	def __init__(self, myfile):
+		f = open(myfile)
 		self.data = bencode.bdecode(f.read())
 		f.close()
 
