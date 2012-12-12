@@ -7,36 +7,32 @@ from bitstring import BitArray, BitStream
 
 
 class DesiredFileInfo(object):
-	'''Takes as input the .torrent file.
+	'''Takes as input the bdecoded torrent data
 	   Initializes object with organized file information'''
 
 	version_number = 1000
 	peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
-	def __init__(self, myfile):
-		f = open(myfile)
-		self.data = bencode.bdecode(f.read())
-		f.close()
-
-		self.announce = self.data['announce']
-		self.creation_date = self.data.get('creation date', None)  #!!! Can set arbitrary values as opposed to None for simplicity
-		self.announce_list = self.data.get('announce-list', None)
-		self.comment = self.data.get('comment', None)
-		self.created_by = self.data.get('created by', None)
-		self.encoding = self.data.get('encoding', None)
-		self.info = self.data['info']
-		self.piece_length = self.data['info']['piece length']
-		self.pieces = self.data['info']['pieces']
+	def __init__(self, decoded_data):
+		self.announce = decoded_data['announce']
+		self.creation_date = decoded_data.get('creation date', None)  #!!! Can set arbitrary values as opposed to None for simplicity
+		self.announce_list = decoded_data.get('announce-list', None)
+		self.comment = decoded_data.get('comment', None)
+		self.created_by = decoded_data.get('created by', None)
+		self.encoding = decoded_data.get('encoding', None)
+		self.info = decoded_data['info']
+		self.piece_length = decoded_data['info']['piece length']
+		self.pieces = decoded_data['info']['pieces']
 		self.number_of_pieces = len(self.pieces) / 20
-		self.private = self.data['info'].get('private', 0)
-		self.name = self.data['info']['name']
-		self.info_hash = hashlib.sha1(bencode.bencode(self.data['info']))
+		self.private = decoded_data['info'].get('private', 0)
+		self.name = decoded_data['info']['name']
+		self.info_hash = hashlib.sha1(bencode.bencode(decoded_data['info']))
 		try:
-			self.length = self.data['info']['length']
+			self.length = decoded_data['info']['length']
 			self.multiple_files = False
 		except KeyError:
 			self.length = 0
-			for file in self.data['info']['files']:
+			for file in decoded_data['info']['files']:
 				self.length += file['length']
 			self.multiple_files = True
 		print "Multiple files? ", self.multiple_files
@@ -296,7 +292,8 @@ class Peer(object):
 
 
 if __name__ == "__main__":
-	file_info = DesiredFileInfo('test.torrent')
+	decoded_data = bencode.bdecode(open('test.torrent').read())
+	file_info = DesiredFileInfo(decoded_data)
 	tracker = Tracker(file_info)
 	tracker.perform_tracker_request()
 
