@@ -128,7 +128,7 @@ class PeerConnection(object):
 		self.bitfield = BitArray(file_info.number_of_pieces) #Initially set to all zeroes unless replaced with peer bitfield or updated with 'have' messages
 		
 		self.send_handshake()
-		self.receive_data()
+		# self.receive_data() This should definitely not be happening on init.
 		self.send_interested()
 		print "Made peer"
 
