@@ -34,9 +34,7 @@ class DesiredFileInfo(object):
 			self.length = decoded_data['info']['length']
 			self.multiple_files = False
 		except KeyError:
-			self.length = 0
-			for eachfile in decoded_data['info']['files']:
-				self.length += eachfile['length']
+			self.length = sum(eachfile['length'] for eachfile in decoded_data['info']['files'])
 			self.multiple_files = True
 		print "Multiple files? ", self.multiple_files
 		self.whole_blocks_per_piece = 1
