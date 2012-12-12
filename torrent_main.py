@@ -105,7 +105,7 @@ class Client(object):
 		return peer_ip_addresses
 
 	def make_peers(self):
-		'''Returns list of Peer objects, tied to open sockets to viable ip addresses'''
+		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		ip_addresses = self.generate_peer_list()
 		self.sockets = []
 		for ip in ip_addresses:
@@ -121,7 +121,7 @@ class Client(object):
 		print "Peer list: ", peer_list
 		for sock in self.sockets:
 			try:
-				new_peer = Peer(sock)
+				new_peer = PeerConnection(sock)
 				peer_list.append(new_peer)
 				piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size)
 			except socket.error:
@@ -130,11 +130,11 @@ class Client(object):
  		return peer_list
 
  	def write_piece_to_file(self, piece_num, piece_data):
+ 		pass
 
 
 
-
-class Peer(object):
+class PeerConnection(object):
 	def __init__(self, socket):
 		self.socket = socket
 		self.data = ''
