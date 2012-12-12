@@ -21,43 +21,35 @@ class DesiredFileInfo(object):
 		self.comment = decoded_data.get('comment', None)
 		self.created_by = decoded_data.get('created by', None)
 		self.encoding = decoded_data.get('encoding', None)
-		self.piece_length = decoded_data['info']['piece length']
-		self.pieces = decoded_data['info']['pieces']
 		self.private = decoded_data['info'].get('private', 0)
 		self.name = decoded_data['info']['name']
 		self.info_hash = hashlib.sha1(bencode.bencode(decoded_data['info']))
 
-		# How many blocks, pieces, etc.
+		# How many files
+		multiple_files = decoded_data.get('files', None)
+		self.num_files = len(multiple_files) if multiple_files else 1
+		print "How many files? ", self.num_files
+
+		# Total length (in bytes)
+		try:
+			self.length = decoded_data['info']['length']
+		except KeyError:
+			self.length = sum(eachfile['length'] for eachfile in decoded_data['info']['files'])
+
+		# Pieces
+		self.piece_length = decoded_data['info']['piece length']
+		self.pieces = decoded_data['info']['pieces']
 		assert len(self.pieces) % 20 == 0
 		self.number_of_pieces = len(self.pieces) / 20
 		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
-		try:
-			self.length = decoded_data['info']['length']
-			self.number_of_files = 1
-		except KeyError:
-			self.length = sum(eachfile['length'] for eachfile in decoded_data['info']['files'])
-			self.number_of_files = len(decoded_data['info']['files'])
-		print "How many files? ", self.number_of_files
-		self.whole_blocks_per_piece = 1
 		
+		# Blocks
 		self.block_length = 2**14
-		if self.piece_length > self.block_length:
-			# Pieces are too large to download as whole chunks
-			print "Will use blocks"
-			self.whole_blocks_per_piece = self.piece_length / self.block_length
-			if self.piece_length % self.block_length != 0:
-				print "Final last block is smaller"
-				self.last_block_size = self.piece_length % self.block_length
-		else:
-			print "Only one block/piece"
-			self.number_of_whole_blocks_in_whole_piece = 1
+		assert self.block_length <= self.piece_length
+		self.whole_blocks_per_piece = self.piece_length / self.block_length
+		self.last_block_size = self.piece_length % self.block_length # will often be zero
+		if self.piece_length < self.block_length:
 			self.block_length = self.piece_length
-			self.last_block_size = 0
-		if self.length % self.piece_length != 0: #handles final, probably smaller,
-			self.last_piece_size = self.length % self.piece_length
-			self.number_of_whole_pieces = self.number_of_pieces - 1
-		else:
-			self.number_of_whole_pieces = self.number_of_pieces
 
 
 class Tracker(object):
