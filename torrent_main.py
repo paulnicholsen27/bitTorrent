@@ -82,8 +82,8 @@ class Client(object):
 
 	def generate_peer_list(self):
 		'''Makes peer list of (ip, port)'''
-		self.tracker_data = self.perform_tracker_request()
-		peer_list = self.tracker_data['peers']
+		tracker_data = self.perform_tracker_request()
+		peer_list = tracker_data['peers']
 		print "Length of peer_list: ", len(peer_list)
 		peer_ip_addresses = []
 		if type(peer_list) == str:
