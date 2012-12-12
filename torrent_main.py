@@ -134,7 +134,7 @@ class PeerConnection(object):
 		print "Made peer"
 
 	def __str__(self):
-		return 'Peer instance with socket ' + str(self.socket)
+		return 'Peer instance with socket ' + str(self.socket.fileno())
 
 	def send_handshake(self):
 		pstr = "BitTorrent protocol"
