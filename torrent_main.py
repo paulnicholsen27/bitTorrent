@@ -1,4 +1,4 @@
-import random, socket, struct, datetime, hashlib
+import random, socket, struct, datetime, hashlib, sys
 import requests
 import bencode
 from bitstring import BitArray, BitStream
@@ -13,7 +13,9 @@ class DesiredFileInfo(object):
 	version_number = 1000
 	peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
-	def __init__(self, decoded_data):
+	def __init__(self, torrent_file):
+		decoded_data = bencode.bdecode(open(torrent_file).read())
+
 		# Basic parameters
 		self.announce = decoded_data['announce']
 		self.creation_date = decoded_data.get('creation date', None)  #!!! Can set arbitrary values as opposed to None for simplicity
@@ -283,8 +285,8 @@ class Peer(object):
 
 
 if __name__ == "__main__":
-	decoded_data = bencode.bdecode(open('test.torrent').read())
-	file_info = DesiredFileInfo(decoded_data)
+	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
+	file_info = DesiredFileInfo(torrent_file)
 	tracker = Tracker(file_info)
 	tracker.perform_tracker_request()
 
