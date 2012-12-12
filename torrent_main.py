@@ -39,7 +39,7 @@ class DesiredFileInfo(object):
 		
 		self.block_length = 2**14
 		if self.piece_length > 2**14:
-			'''Pieces are too large to download as whole chunks'''
+			# Pieces are too large to download as whole chunks
 			print "Will use blocks"
 			self.number_of_whole_blocks_in_whole_piece = self.piece_length / self.block_length
 			if self.piece_length % self.block_length != 0:
