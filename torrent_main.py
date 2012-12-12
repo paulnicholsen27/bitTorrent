@@ -108,26 +108,18 @@ class Client(object):
 	def make_peers(self):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		ip_addresses = self.generate_peer_list()
-		sockets = []
+		peer_list = []
 		for ip, port in ip_addresses:
 			if ip != 0:
 				try:
 					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 					sock.connect((ip, port))
-					sockets.append(sock)
+					new_peer = PeerConnection(sock)
+					peer_list.append(new_peer)
+					piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
 					print "Socket made"
 				except socket.error as e:
 					print "Caught socket error:", e, "on socket", sock.fileno()
-		peer_list = []
-		print "Peer list: ", peer_list
-		for sock in sockets:
-			try:
-				new_peer = PeerConnection(sock)
-				peer_list.append(new_peer)
-				piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size)
-			except socket.error as e:
-				print "Failed to make peer because of", e
-		print "Number of peers: ", len(peer_list)
  		return peer_list
 
  	def write_piece_to_file(self, piece_num, piece_data):
