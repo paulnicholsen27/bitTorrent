@@ -55,9 +55,7 @@ class Client(object):
 
 	def __init__(self, file_info):
 		self.file_info = file_info
-		# self.my_file = OwnedFileInfo()
 		self.my_file = open(file_info.name, 'wb')
-		# print self.my_file
 		self.bitfield = BitArray(file_info.number_of_pieces)
 		self.peers = self.make_peers()
 
@@ -286,6 +284,6 @@ if __name__ == "__main__":
 
 	while any(client.bitfield)==False:
 		print 'going through peers...'
-  		peers = client.make_peers()
+		peers = client.make_peers()
 		client.cycle_through_peers()
 	print "File completed"
