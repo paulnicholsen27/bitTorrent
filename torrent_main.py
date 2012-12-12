@@ -14,6 +14,7 @@ class DesiredFileInfo(object):
 	peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
 	def __init__(self, decoded_data):
+		# Basic parameters
 		self.announce = decoded_data['announce']
 		self.creation_date = decoded_data.get('creation date', None)  #!!! Can set arbitrary values as opposed to None for simplicity
 		self.announce_list = decoded_data.get('announce-list', None)
@@ -22,10 +23,13 @@ class DesiredFileInfo(object):
 		self.encoding = decoded_data.get('encoding', None)
 		self.piece_length = decoded_data['info']['piece length']
 		self.pieces = decoded_data['info']['pieces']
-		self.number_of_pieces = len(self.pieces) / 20
 		self.private = decoded_data['info'].get('private', 0)
 		self.name = decoded_data['info']['name']
 		self.info_hash = hashlib.sha1(bencode.bencode(decoded_data['info']))
+
+		# How many blocks, pieces, etc.
+		self.number_of_pieces = len(self.pieces) / 20
+		# Each entry in pieces is a 20-bit byte string, so dividing by 20 gives the number of pieces
 		try:
 			self.length = decoded_data['info']['length']
 			self.multiple_files = False
