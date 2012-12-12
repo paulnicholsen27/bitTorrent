@@ -24,7 +24,7 @@ class DesiredFileInfo(object):
 		self.created_by = decoded_data.get('created by', None)
 		self.encoding = decoded_data.get('encoding', None)
 		self.private = decoded_data['info'].get('private', 0)
-		self.name = decoded_data['info']['name']
+		self.file_name = decoded_data['info']['name']
 		self.info_hash = hashlib.sha1(bencode.bencode(decoded_data['info']))
 
 		# How many files
@@ -53,9 +53,8 @@ class DesiredFileInfo(object):
 
 class Client(object):
 
-	def __init__(self, file_info):
-		self.file_info = file_info
-		self.my_file = open(file_info.name, 'wb')
+	def __init__(self, file_out):
+		self.file_out = open(file_out, 'wb')
 		self.bitfield = BitArray(file_info.number_of_pieces)
 
 	def update_bitfield(self, index):
@@ -275,7 +274,7 @@ class PeerConnection(object):
 if __name__ == "__main__":
 	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
 	file_info = DesiredFileInfo(torrent_file)
-	client = Client(file_info)
+	client = Client(file_info.file_name)
 	tracker_data = client.perform_tracker_request(file_info)
 	peer_ips = client.generate_peer_ip_list(tracker_data)
 	client.peers = client.make_peers(peer_ips)
