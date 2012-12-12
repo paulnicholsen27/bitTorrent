@@ -57,15 +57,6 @@ class Client(object):
 		self.file_out = open(file_out, 'wb')
 		self.bitfield = BitArray(file_info.number_of_pieces)
 
-	def update_bitfield(self, index):
-		'''Updates bitfield info for downloaded pieces'''
-		self.bitfield[index] = 1
-		print "Current Bitfield: ", self.bitfield.bin
-
-	def cycle_through_peers(self):
-		for p in self.peers:
-			p.receive_data()
-
 	def perform_tracker_request(self, file_info):
 		'''Requests tracker information'''
 		parameters = {'info_hash': file_info.info_hash.digest(),
@@ -115,6 +106,15 @@ class Client(object):
 				except socket.error as e:
 					print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
  		return peer_list
+
+	def update_bitfield(self, index):
+		'''Updates bitfield info for downloaded pieces'''
+		self.bitfield[index] = 1
+		print "Current Bitfield: ", self.bitfield.bin
+
+	def cycle_through_peers(self):
+		for p in self.peers:
+			p.receive_data()
 
  	def write_piece_to_file(self, piece_num, piece_data):
  		pass
