@@ -28,6 +28,7 @@ class DesiredFileInfo(object):
 		self.info_hash = hashlib.sha1(bencode.bencode(decoded_data['info']))
 
 		# How many blocks, pieces, etc.
+		assert len(self.pieces) % 20 == 0
 		self.number_of_pieces = len(self.pieces) / 20
 		# Each entry in pieces is a 20-byte byte string, so dividing by 20 gives the number of pieces
 		try:
