@@ -20,7 +20,6 @@ class DesiredFileInfo(object):
 		self.comment = decoded_data.get('comment', None)
 		self.created_by = decoded_data.get('created by', None)
 		self.encoding = decoded_data.get('encoding', None)
-		self.info = decoded_data['info']
 		self.piece_length = decoded_data['info']['piece length']
 		self.pieces = decoded_data['info']['pieces']
 		self.number_of_pieces = len(self.pieces) / 20
