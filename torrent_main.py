@@ -115,8 +115,8 @@ class Client(object):
 					sock.connect(ip)
 					self.sockets.append(sock)
 					print "Socket made"
-				except socket.error:
-					print "Caught socket error"
+				except socket.error as e:
+					print "Caught socket error:", e
 		peer_list = []
 		print "Peer list: ", peer_list
 		for sock in self.sockets:
