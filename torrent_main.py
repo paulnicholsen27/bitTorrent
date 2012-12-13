@@ -130,22 +130,26 @@ class PeerConnection(object):
 		self.data = ''
 		self.bitfield = BitArray(file_info.number_of_pieces) #Initially set to all zeroes unless replaced with peer bitfield or updated with 'have' messages
 		
-		self.send_handshake()
+		handshake = self.send_handshake()
+		self.sock.send(handshake)
 		handshake_hopefully = self.socket.recv(68)
 		# Todo: check that handshake back takes correct form
 		# self.receive_data() This should definitely not be happening on init.
-		self.send_interested()
+		interested = self.make_interested()
+		self.sock.send(interested)
+		self.data += self.sock.recv(10**6)
+		self.parse_data() # we're going to move this in a second
 		print "Made peer"
 
 	def __str__(self):
 		return 'Peer instance with socket ' + str(self.socket.fileno())
 
-	def send_handshake(self):
+	def make_handshake(self):
 		pstr = "BitTorrent protocol"
 		pstrlen = chr(len(pstr)) #19
 		reserved = chr(0) * 8
 		handshake =  pstrlen + pstr + reserved + file_info.info_hash.digest() + file_info.peer_id
-		self.socket.send(handshake)
+		return handshake
 
 	def receive_data(self):
 		print self, 'is receiving data...'
@@ -209,13 +213,9 @@ class PeerConnection(object):
 		self.bitfield[have_index] = 1
 	#	print self.bitfield.bin
 
-	def send_interested(self):
+	def make_interested(self):
 		'''send message to peer of length 1 and ID 2'''
-		interested = struct.pack('!I', 1) + struct.pack('!B', 2)
-		self.socket.send(interested)
-		print "Interested"
-		self.data += self.socket.recv(10**6)
-		self.parse_data()
+		return struct.pack('!I', 1) + struct.pack('!B', 2) 
 
 	def get_data(self, tracker_bitfield, block_length, last_block_size):
 		for piece_num in range(len(tracker_bitfield)):
