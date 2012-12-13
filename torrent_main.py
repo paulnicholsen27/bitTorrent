@@ -91,20 +91,23 @@ class Client(object):
 				peer_ip_addresses.append(ip_and_port)
 		return peer_ip_addresses
 
+	def make_peer(self, ip, port):
+		try:
+			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			sock.connect((ip, port))
+			new_peer = PeerConnection(sock)	
+			return new_peer	
+		except socket.error as e:
+			print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
+
 	def make_peers(self, ip_addresses):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		peer_list = []
 		for ip, port in ip_addresses:
 			if ip != 0:
-				try:
-					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-					sock.connect((ip, port))
-					new_peer = PeerConnection(sock)
+				if self.make_peer(ip, port):
 					peer_list.append(new_peer)
-					piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
-					print "Socket made"
-				except socket.error as e:
-					print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
+					#piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
  		return peer_list
 
 	def update_bitfield(self, index):
