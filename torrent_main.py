@@ -56,6 +56,7 @@ class Client(object):
 	def __init__(self, file_out):
 		self.file_out = open(file_out, 'wb')
 		self.bitfield = BitArray(file_info.number_of_pieces)
+		self.peer_connections = [] # created later
 
 	def perform_tracker_request(self, file_info):
 		'''Requests tracker information'''
@@ -102,13 +103,11 @@ class Client(object):
 
 	def make_peers(self, ip_addresses):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
-		peer_list = []
 		for ip, port in ip_addresses:
 			if ip != 0:
 				if self.make_peer(ip, port):
-					peer_list.append(new_peer)
+					self.peer_connections.append(new_peer)
 					#piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
- 		return peer_list
 
 	def update_bitfield(self, index):
 		'''Updates bitfield info for downloaded pieces'''
@@ -279,7 +278,7 @@ if __name__ == "__main__":
 	client = Client(file_info.file_name)
 	tracker_data = client.perform_tracker_request(file_info)
 	peer_ips = client.generate_peer_ip_list(tracker_data)
-	client.peers = client.make_peers(peer_ips)
+	client.peer_connections = client.make_peers(peer_ips)
 
 
 	while any(client.bitfield)==False:
