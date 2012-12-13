@@ -102,7 +102,7 @@ class Client(object):
 		except socket.error as e:
 			print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
 
-	def make_peers(self, ip_addresses):
+	def make_peers(self, ip_addresses, handshake):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		for ip, port in ip_addresses:
 			if ip != 0:
@@ -123,15 +123,21 @@ class Client(object):
 		self.file_out.seek(start_location)
 		self.file_out.write(piece_data[13:])
 
+	def make_handshake(self, info_hash):
+		pstr = "BitTorrent protocol"
+		pstrlen = chr(len(pstr)) #19
+		reserved = chr(0) * 8
+		handshake =  pstrlen + pstr + reserved + info_hash.digest() + self.my_peer_id
+		return handshake
+
 
 
 class PeerConnection(object):
-	def __init__(self, socket):
+	def __init__(self, socket, handshake):
 		self.socket = socket
 		self.data = ''
 		self.bitfield = BitArray(file_info.number_of_pieces) #Initially set to all zeroes unless replaced with peer bitfield or updated with 'have' messages
 		
-		handshake = self.send_handshake()
 		self.sock.send(handshake)
 		handshake_hopefully = self.socket.recv(68)
 		# Todo: check that handshake back takes correct form
@@ -144,13 +150,6 @@ class PeerConnection(object):
 
 	def __str__(self):
 		return 'Peer instance with socket ' + str(self.socket.fileno())
-
-	def make_handshake(self):
-		pstr = "BitTorrent protocol"
-		pstrlen = chr(len(pstr)) #19
-		reserved = chr(0) * 8
-		handshake =  pstrlen + pstr + reserved + file_info.info_hash.digest() + client.my_peer_id
-		return handshake
 
 	def receive_data(self):
 		print self, 'is receiving data...'
@@ -278,8 +277,9 @@ if __name__ == "__main__":
 	file_info = DesiredFileInfo(torrent_file)
 	client = Client(file_info.file_name)
 	tracker_data = client.perform_tracker_request(file_info)
+	handshake = client.make_handshake(file_info.info_hash)
 	peer_ips = client.generate_peer_ip_list(tracker_data)
-	client.peer_connections = client.make_peers(peer_ips)
+	client.peer_connections = client.make_peers(peer_ips, handshake)
 
 
 	while any(client.bitfield)==False:
