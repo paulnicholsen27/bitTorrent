@@ -244,9 +244,9 @@ class PeerConnection(object):
 		print "requesting a block"
 		block_data = ''
 		request_msg = self.make_request_msg(13, 6, piece_num, block_num*block_length, block_length)
-		self.socket.send(request_msg)
+		self.sock.send(request_msg)
 		while len(block_data) < block_length + 13: #todo: learn why 13
-			block_data += self.socket.recv(2**15)
+			block_data += self.sock.recv(2**15)
 		return block_data
 
 	def make_request_msg(self, thirteen, six, piece_num, start_point, block_length):
@@ -267,7 +267,7 @@ class PeerConnection(object):
 			      struct.pack('!I', self.index) +
 			      struct.pack('!I', self.begin) +
 			      struct.pack('!I', self.length))
-		self.socket.send(cancel)
+		self.sock.send(cancel)
 
 
 def setup_client(filename):
