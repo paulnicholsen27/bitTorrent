@@ -11,7 +11,6 @@ class DesiredFileInfo(object):
 	   Initializes object with organized file information'''
 
 	version_number = 1000
-	peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
 	def __init__(self, torrent_file):
 		decoded_data = bencode.bdecode(open(torrent_file).read())
@@ -53,6 +52,8 @@ class DesiredFileInfo(object):
 
 class Client(object):
 
+	my_peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
+
 	def __init__(self, file_out):
 		self.file_out = open(file_out, 'wb')
 		self.bitfield = BitArray(file_info.number_of_pieces)
@@ -61,7 +62,7 @@ class Client(object):
 	def perform_tracker_request(self, file_info):
 		'''Requests tracker information'''
 		parameters = {'info_hash': file_info.info_hash.digest(),
-					  'peer_id': file_info.peer_id,
+					  'peer_id': my_peer_id,
 					  'left': file_info.length,
 					  'port':6881}
 		request = requests.get(file_info.announce, params = parameters)
@@ -148,7 +149,7 @@ class PeerConnection(object):
 		pstr = "BitTorrent protocol"
 		pstrlen = chr(len(pstr)) #19
 		reserved = chr(0) * 8
-		handshake =  pstrlen + pstr + reserved + file_info.info_hash.digest() + file_info.peer_id
+		handshake =  pstrlen + pstr + reserved + file_info.info_hash.digest() + client.my_peer_id
 		return handshake
 
 	def receive_data(self):
