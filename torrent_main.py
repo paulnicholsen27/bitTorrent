@@ -133,6 +133,7 @@ class PeerConnection(object):
 		
 		self.send_handshake()
 		handshake_hopefully = self.socket.recv(68)
+		# Todo: check that handshake back takes correct form
 		# self.receive_data() This should definitely not be happening on init.
 		self.send_interested()
 		print "Made peer"
