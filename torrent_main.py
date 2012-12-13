@@ -93,7 +93,7 @@ class Client(object):
 				peer_ip_addresses.append(ip_and_port)
 		return peer_ip_addresses
 
-	def make_peer(self, ip, port):
+	def connect_to_peer(self, ip, port):
 		try:
 			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			sock.connect((ip, port))
@@ -106,7 +106,7 @@ class Client(object):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		for ip, port in ip_addresses:
 			if ip != 0:
-				if self.make_peer(ip, port):
+				if self.connect_to_peer(ip, port):
 					self.peer_connections.append(new_peer)
 					#piece_data = new_peer.get_data(self.bitfield, self.file_info.block_length, self.file_info.last_block_size) #todo: move this from here
 
