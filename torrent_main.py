@@ -176,35 +176,35 @@ class PeerConnection(object):
 				break
 			length = struct.unpack('!I', self.data[:4])[0]
 			if length == 0:
-				type = 'keep alive'
+				msg_type = 'keep alive'
 				self.data = self.data[4:]
 			else: #data type anything but 'keep alive'
 				try:
 					print "Trying to parse data"
-					type = message_types[ord(self.data[4])]
+					msg_type = message_types[ord(self.data[4])]
 				except KeyError:
 					self.receive_data()
 				length = length-1 #subtract one for message-type byte
-				if type == 'choke':
+				if msg_type == 'choke':
 					pass
-				elif type == 'unchoke':
+				elif msg_type == 'unchoke':
 					self.unchoke = True
 					print "Unchoked"
-				elif type == 'interested':
+				elif msg_type == 'interested':
 					pass
-				elif type == 'not interested':
+				elif msg_type == 'not interested':
 					pass
-				elif type == 'have':
+				elif msg_type == 'have':
 					self.complete_bitfield(struct.unpack('!I', self.data[5:5+length])[0])
-				elif type == 'bitfield':
+				elif msg_type == 'bitfield':
 					expected_bitfield_length = file_info.number_of_pieces
 					print "expected bitfield_length: ", expected_bitfield_length
 					self.bitfield = BitArray(bytes=self.data[5:5+length])[:expected_bitfield_length]
-				elif type == 'request':
+				elif msg_type == 'request':
 					pass
-				elif type == 'piece':
+				elif msg_type == 'piece':
 					pass
-				elif type == 'cancel':
+				elif msg_type == 'cancel':
 					pass
 				else:
 					break
