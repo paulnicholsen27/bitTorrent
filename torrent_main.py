@@ -270,9 +270,8 @@ class PeerConnection(object):
 		self.socket.send(cancel)
 
 
-if __name__ == "__main__":
-	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
-	file_info = DesiredFileInfo(torrent_file)
+def setup_client(filename):
+	file_info = DesiredFileInfo(filename)
 	client = Client(file_info.file_name)
 	tracker_data = client.perform_tracker_request(file_info)
 	handshake = client.make_handshake(file_info.info_hash)
@@ -280,6 +279,12 @@ if __name__ == "__main__":
 	peer_ips = client.generate_peer_ip_list(tracker_data)
 	client.peer_connections = client.make_peers(peer_ips, handshake, interested)
 
+	return client
+
+
+if __name__ == "__main__":
+	torrent_file = sys.argv[1] if len(sys.argv) > 1 else 'test.torrent'
+	client = setup_client(torrent_file)
 
 	while any(client.bitfield)==False:
 		print 'going through peers...'
