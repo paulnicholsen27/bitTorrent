@@ -119,8 +119,9 @@ class Client(object):
 		for p in self.peers:
 			p.receive_data()
 
- 	def write_piece_to_file(self, piece_num, piece_data):
- 		pass
+	def write_piece_to_file(self, start_location, piece_data):
+		self.file_out.seek(start_location)
+		self.file_out.write(piece_data[13:])
 
 
 
@@ -261,10 +262,7 @@ class PeerConnection(object):
 	def check_piece(self, file):
 		return hashlib.sha1(self.current_piece[13:]).digest() == file_info.pieces[20*self.index:20*(self.index+1)]
 
-	def write_piece_to_file(self, my_file, start_location, piece_data):
-		# if self.check_piece(my_file)
-		my_file.seek(start_location)
-		my_file.write(piece_data[13:])
+
 
 	def send_cancel(self):
 		cancel = (struct.pack('!I', 13) + struct.pack('!B', 8) +
