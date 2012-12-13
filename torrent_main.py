@@ -102,7 +102,7 @@ class Client(object):
 		except socket.error as e:
 			print "Caught socket error:", e, "on socket", sock.fileno(), "from peer IP", ip
 
-	def make_peers(self, ip_addresses, handshake):
+	def make_peers(self, ip_addresses, handshake, interested):
 		'''Returns list of PeerConnection objects, tied to open sockets to viable ip addresses'''
 		for ip, port in ip_addresses:
 			if ip != 0:
@@ -130,10 +130,13 @@ class Client(object):
 		handshake =  pstrlen + pstr + reserved + info_hash.digest() + self.my_peer_id
 		return handshake
 
+	def make_interested(self):
+		'''send message to peer of length 1 and ID 2'''
+		return struct.pack('!I', 1) + struct.pack('!B', 2) 
 
 
 class PeerConnection(object):
-	def __init__(self, socket, handshake):
+	def __init__(self, socket, handshake, interested):
 		self.socket = socket
 		self.data = ''
 		self.bitfield = BitArray(file_info.number_of_pieces) #Initially set to all zeroes unless replaced with peer bitfield or updated with 'have' messages
@@ -142,7 +145,6 @@ class PeerConnection(object):
 		handshake_hopefully = self.socket.recv(68)
 		# Todo: check that handshake back takes correct form
 		# self.receive_data() This should definitely not be happening on init.
-		interested = self.make_interested()
 		self.sock.send(interested)
 		self.data += self.sock.recv(10**6)
 		self.parse_data() # we're going to move this in a second
@@ -213,10 +215,6 @@ class PeerConnection(object):
 		self.bitfield[have_index] = 1
 	#	print self.bitfield.bin
 
-	def make_interested(self):
-		'''send message to peer of length 1 and ID 2'''
-		return struct.pack('!I', 1) + struct.pack('!B', 2) 
-
 	def get_data(self, tracker_bitfield, block_length, last_block_size):
 		for piece_num in range(len(tracker_bitfield)):
 			if not tracker_bitfield[piece_num]:
@@ -278,8 +276,9 @@ if __name__ == "__main__":
 	client = Client(file_info.file_name)
 	tracker_data = client.perform_tracker_request(file_info)
 	handshake = client.make_handshake(file_info.info_hash)
+	interested = client.make_interested()
 	peer_ips = client.generate_peer_ip_list(tracker_data)
-	client.peer_connections = client.make_peers(peer_ips, handshake)
+	client.peer_connections = client.make_peers(peer_ips, handshake, interested)
 
 
 	while any(client.bitfield)==False:
