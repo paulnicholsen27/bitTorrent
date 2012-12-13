@@ -10,7 +10,6 @@ class DesiredFileInfo(object):
 	'''Takes as input the torrent file
 	   Initializes object with organized file information'''
 
-	version_number = 1000
 
 	def __init__(self, torrent_file):
 		decoded_data = bencode.bdecode(open(torrent_file).read())
@@ -52,6 +51,7 @@ class DesiredFileInfo(object):
 
 class Client(object):
 
+	version_number = 1000
 	my_peer_id = '-PN%s-' %(version_number) + str(random.randint(10**11, 10**12-1))
 
 	def __init__(self, file_out):
